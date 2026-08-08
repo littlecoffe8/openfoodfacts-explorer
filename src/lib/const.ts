@@ -23,6 +23,7 @@ export const API_HOST = publicEnv.PUBLIC_OFF_BASE_URL || 'https://world.openfood
 export const SEARCH_URL = `${API_HOST}/api/v2/search`;
 export const PRODUCT_EDIT_URL = `${API_HOST}/product/`;
 export const CURRENT_USER_PERMISSIONS_URL = `${API_HOST}/api/v3/current-user/permissions`;
+export const EXTERNAL_SOURCES_URL = `${API_HOST}/api/v3/external_sources`;
 
 export const TRACEABILITY_CODES_URL =
 	'https://wiki.openfoodfacts.org/Food_Traceability_Codes/EU_Food_establishments';

@@ -739,5 +739,10 @@
 	},
 	"static_iframe": {
 		"load_failed": "Échec du chargement du contenu."
+	},
+	"knowledge_panel": {
+		"provided_by": "Fourni par {name}",
+		"view_source": "Voir la source",
+		"external_display_note": "Affiché tel que fourni par le partenaire, dans son style d'origine."
 	}
 }

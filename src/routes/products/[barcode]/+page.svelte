@@ -6,6 +6,7 @@
 	import { _ } from '$lib/i18n';
 
 	import KnowledgePanelsComp from '$lib/knowledgepanels/Panels.svelte';
+	import ThirdPartyPanels from '$lib/knowledgepanels/ThirdPartyPanels.svelte';
 	import Card from '$lib/ui/Card.svelte';
 	import Metadata from '$lib/Metadata.svelte';
 
@@ -38,6 +39,7 @@
 	import { page } from '$app/state';
 	import { trackOffEvent } from '$lib/analytics';
 	import { browser } from '$app/environment';
+	import { preferences } from '$lib/settings';
 
 	let { data }: PageProps = $props();
 	let { state: productState } = $derived(data);
@@ -242,6 +244,15 @@
 	{/await}
 
 	<KnowledgePanelsComp panels={product.knowledge_panels} code={product.code} roots={['root']} />
+
+	{#if data.thirdPartySources?.length > 0}
+		<ThirdPartyPanels
+			sources={data.thirdPartySources}
+			code={product.code}
+			lc={data.lc}
+			cc={$preferences.country}
+		/>
+	{/if}
 
 	{#if isPriceConfigured() && data?.prices != null}
 		<Prices prices={data.prices} barcode={product.code} />

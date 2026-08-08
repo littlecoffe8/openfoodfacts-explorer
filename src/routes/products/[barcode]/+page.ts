@@ -1,6 +1,9 @@
 import { error } from '@sveltejs/kit';
 import type { PageLoad } from './$types';
 
+import { dev } from '$app/environment';
+import { env as publicEnv } from '$env/dynamic/public';
+
 import { PricesApi } from '@openfoodfacts/openfoodfacts-nodejs';
 
 import { createProductsApi } from '$lib/api';
@@ -15,6 +18,11 @@ import {
 	ERR_PRODUCT_NOT_FOUND,
 	type ProductStateResponse
 } from '$lib/api/errorUtils';
+import {
+	getExternalSources,
+	filterApplicableSources,
+	overrideThirdPartySourceOrigin
+} from '$lib/api/knowledgepanels';
 
 async function getPricesCoords(api: PricesApi, code: string) {
 	// load all prices coordinates
@@ -124,9 +132,33 @@ export const load: PageLoad = async ({ params, fetch }) => {
 		return attributesToDefaultPreferences(attributeGroupsList);
 	})();
 
+	// Un fournisseur tiers indisponible ou une réponse inattendue ne doit
+	// jamais faire échouer le chargement de la page produit : on retombe sur
+	// une liste vide (aucun knowledge panel tiers affiché) en cas d'erreur.
+	const thirdPartySources = await getExternalSources(fetch)
+		.then((sources) =>
+			filterApplicableSources(sources, {
+				categories_tags: state.product?.categories_tags,
+				countries_tags: state.product?.countries_tags,
+				product_type: state.product?.product_type
+			})
+		)
+		.then((sources) => {
+			// Dev only: permet de rediriger les sources tierces vers un mock
+			// local (ex: PUBLIC_THIRD_PARTY_DEV_ORIGIN=http://127.0.0.1:8000)
+			// pour tester une modification du JSON tiers sans dépendre du
+			// vrai serveur du fournisseur. Jamais actif en production.
+			if (dev && publicEnv.PUBLIC_THIRD_PARTY_DEV_ORIGIN) {
+				return overrideThirdPartySourceOrigin(sources, publicEnv.PUBLIC_THIRD_PARTY_DEV_ORIGIN);
+			}
+			return sources;
+		})
+		.catch(() => []);
+
 	return {
 		state,
 		lc,
+		thirdPartySources,
 		defaultProductPreferences: await defaultPreferences,
 		tags: await folksonomyTags,
 		keys: await folksonomyKeys,
